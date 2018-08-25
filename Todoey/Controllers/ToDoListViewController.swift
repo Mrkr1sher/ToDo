@@ -9,12 +9,11 @@
 import UIKit
 import RealmSwift
 
-class ToDoListViewController: UITableViewController {
+class ToDoListViewController: SwipeTableViewController {
 
     @IBOutlet weak var searchBar: UISearchBar!
     
     var toDoItems : Results<Item>?
-    let realm = try! Realm()
     
     var selectedCategory : Category? {
         didSet {
@@ -25,11 +24,18 @@ class ToDoListViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        tableView.rowHeight = 80
+        
+        
     }
+    
+    
+    
+//MARK: - Table View Data Source Methods
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         
         if let item = toDoItems?[indexPath.row] {
             
@@ -40,14 +46,16 @@ class ToDoListViewController: UITableViewController {
             cell.textLabel?.text = "No Items Added"
         }
         
-        
-        
         return cell
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return toDoItems?.count ?? 1
     }
+    
+    
+    
+//MARK: - Table View Delegate Methods
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
@@ -64,13 +72,17 @@ class ToDoListViewController: UITableViewController {
         tableView.deselectRow(at: indexPath, animated: true)
     }
 
+    
+    
+//MARK: - Add New Items
+    
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
         
         var textField = UITextField()
         
         let alert = UIAlertController(title: "Add New Todoey Item", message: "", preferredStyle: .alert)
         let alertActionCancel = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
-        let alertActionAdd = UIAlertAction(title: "Add Item", style: .default) { (action) in
+        let alertActionAdd = UIAlertAction(title: "Add", style: .default) { (action) in
             // What happens when the User clicks "Add Item" on UIAlert
             
             if let currentCategory = self.selectedCategory {
@@ -100,15 +112,46 @@ class ToDoListViewController: UITableViewController {
         
     }
     
+// MARK: - Data Manipulation Methods
+    
+    // Save
+    func save(save: Item) {
+        do {
+            try realm.write {
+                realm.add(save)
+            }
+        } catch {
+            print("Problem saving to Realm \(error)")
+        }
+        tableView.reloadData()
+    }
+    
+    // Load
     func loadItems() {
         
         toDoItems = selectedCategory?.items.sorted(byKeyPath: "title", ascending: true)
 
         tableView.reloadData()
     }
+    
+    // Update
+    override func updateModel(at indexPath: IndexPath) {
+        if let itemToDelete = toDoItems?[indexPath.row] {
+            do {
+                try realm.write {
+                    realm.delete(itemToDelete)
+                }
+            } catch {
+                print("Error trying to delete data from Swipe \(error)")
+            }
+        }
+    }
 }
 
+
+
 //MARK: - Search Bar Methods
+
 extension ToDoListViewController: UISearchBarDelegate {
 
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {

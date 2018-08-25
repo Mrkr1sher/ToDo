@@ -9,24 +9,25 @@
 import UIKit
 import RealmSwift
 
-class CategoryViewController: UITableViewController {
+class CategoryViewController: SwipeTableViewController {
     
     var categoriesArray : Results<Category>?
-    
-    let realm = try! Realm()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         loadCategories()
         
+        tableView.rowHeight = 80
     }
     
-    //MARK: - Table View Data Source Methods
+    
+    
+//MARK: - Table View Data Source Methods
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         
         cell.textLabel?.text = categoriesArray?[indexPath.row].name ?? "No Categories Added Yet"
         
@@ -37,7 +38,9 @@ class CategoryViewController: UITableViewController {
         return categoriesArray?.count ?? 1
     }
     
-    //MARK: - Table View Delegate Methods
+    
+    
+//MARK: - Table View Delegate Methods
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         performSegue(withIdentifier: "goToItems", sender: self)
@@ -53,7 +56,8 @@ class CategoryViewController: UITableViewController {
     }
     
     
-    //MARK: - Add New Categories
+    
+//MARK: - Add New Categories
     
     @IBAction func addItemPressed(_ sender: UIBarButtonItem) {
         
@@ -61,11 +65,11 @@ class CategoryViewController: UITableViewController {
         
         let alert = UIAlertController(title: "Add New Category", message: "", preferredStyle: .alert)
         let alertCancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
-        let alertAddAction = UIAlertAction(title: "Add Category", style: .default) { (action) in
+        let alertAddAction = UIAlertAction(title: "Add", style: .default) { (action) in
             
             let newCategory = Category()
             newCategory.name = textField.text!
-            self.save(category: newCategory)
+            self.save(save: newCategory)
             
         }
         alert.addTextField { (field) in
@@ -81,22 +85,39 @@ class CategoryViewController: UITableViewController {
         print(realm.objects(Category.self))
     }
     
-    //MARK: - Data Manipulation Methods
     
-    func save(category: Category) {
+    
+//MARK: - Data Manipulation Methods
+    
+    //Save
+    func save(save: Category) {
         do {
             try realm.write {
-                realm.add(category)
+                realm.add(save)
             }
         } catch {
-            print("Problem saving to Core Data \(error)")
+            print("Problem saving to Realm \(error)")
         }
         tableView.reloadData()
         
     }
     
+    //Load
     func loadCategories() {
         categoriesArray = realm.objects(Category.self)
         tableView.reloadData()
+    }
+    
+    //Delete
+    override func updateModel(at indexPath: IndexPath) {
+        if let categoryToDelete = categoriesArray?[indexPath.row] {
+            do {
+                try realm.write {
+                    realm.delete(categoryToDelete)
+                }
+            } catch {
+                print("Error trying to delete data from Swipe \(error)")
+            }
+        }
     }
 }

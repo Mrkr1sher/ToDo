@@ -8,6 +8,7 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
 class ToDoListViewController: SwipeTableViewController {
 
@@ -21,13 +22,39 @@ class ToDoListViewController: SwipeTableViewController {
         }
     }
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
+    override func viewWillAppear(_ animated: Bool) {
         
-        tableView.rowHeight = 80
+        title = selectedCategory?.name
         
+        guard let colorHex = selectedCategory?.color else { fatalError() }
+        
+        updateNavBar(withHex: colorHex)
         
     }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        
+        updateNavBar(withHex: "42BFFF")
+        
+    }
+    
+    
+    
+//MARK: - Navigation Bar Setup Methods
+    
+    func updateNavBar(withHex colorHex : String) {
+        
+        guard let navBarColor = UIColor(hexString: colorHex) else { fatalError() }
+        guard let navBar = navigationController?.navigationBar else { fatalError() }
+        
+        searchBar.barTintColor = navBarColor
+        navBar.barTintColor = navBarColor
+        navBar.tintColor = ContrastColorOf(navBarColor, returnFlat: true)
+        navBar.largeTitleTextAttributes = [NSAttributedStringKey.foregroundColor : FlatWhite()]
+        
+    }
+    
+    
     
     
     
@@ -41,6 +68,11 @@ class ToDoListViewController: SwipeTableViewController {
             
             cell.textLabel?.text = item.title
             
+            let categoryColor = selectedCategory?.color
+            
+            cell.backgroundColor = UIColor(hexString: categoryColor!)?.darken(byPercentage: (CGFloat(indexPath.row)/(CGFloat((toDoItems?.count)!))))
+            
+            cell.textLabel?.textColor = ContrastColorOf(cell.backgroundColor!, returnFlat: true)
             cell.accessoryType = item.done ? .checkmark : .none
         } else {
             cell.textLabel?.text = "No Items Added"
@@ -91,6 +123,7 @@ class ToDoListViewController: SwipeTableViewController {
                         let newItem = Item()
                         newItem.title = textField.text!
                         newItem.dateCreated = Date()
+                        newItem.color = UIColor.randomFlat.hexValue()
                         currentCategory.items.append(newItem)
                     }
                 } catch {
@@ -147,6 +180,7 @@ class ToDoListViewController: SwipeTableViewController {
         }
     }
 }
+
 
 
 

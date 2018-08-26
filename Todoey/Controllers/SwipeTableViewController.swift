@@ -19,6 +19,8 @@ class SwipeTableViewController: UITableViewController, SwipeTableViewCellDelegat
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        tableView.rowHeight = 80
     }
     
 //MARK: - Table View Data Source Methods
@@ -56,23 +58,13 @@ class SwipeTableViewController: UITableViewController, SwipeTableViewCellDelegat
     
     
     
-//MARK: - Data Manipulation Methods
-    
-    // Save
-//    func save(save: String) {
-//        do {
-//            try realm.write {
-//                realm.add(save)
-//            }
-//        } catch {
-//            print("Problem saving to Realm \(error)")
-//        }
-//        tableView.reloadData()
-//    }
-    
-    
-    
-    
+    override func motionEnded(_ motion: UIEventSubtype, with event: UIEvent?) {
+        let creditsAlert = UIAlertController(title: "Credits", message: "Created by Krish Thawani", preferredStyle: .alert)
+        let creditsAlertActionOk = UIAlertAction(title: "Ok", style: .default, handler: nil)
+        creditsAlert.addAction(creditsAlertActionOk)
+        present(creditsAlert, animated: true, completion: nil)
+        
+    }
     
 // MARK: - Custom Methods
     
